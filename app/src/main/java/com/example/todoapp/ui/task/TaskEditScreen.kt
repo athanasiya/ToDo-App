@@ -126,7 +126,7 @@ fun TaskEditScreen(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = stringResource(R.string.set_reminder),
+                    text = stringResource(R.string.edit_reminder),
                     color = SecondaryColor
                 )
             }

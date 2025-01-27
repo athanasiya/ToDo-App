@@ -23,7 +23,10 @@ object AppViewModelProvider {
 
         // Initializer for TaskEntryViewModel
         initializer {
-            TaskEntryViewModel(toDoApplication().container.taskRepository)
+            TaskEntryViewModel(
+                toDoApplication().container.taskRepository,
+                toDoApplication().container.toDoRepository
+            )
         }
 
         // Initializer for TaskEditViewModel

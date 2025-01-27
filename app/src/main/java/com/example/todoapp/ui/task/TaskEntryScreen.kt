@@ -12,12 +12,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -49,6 +54,7 @@ fun TaskEntryScreen(
     viewModel: TaskEntryViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val coroutineScope = rememberCoroutineScope() // val to launch a coroutine
+    var showReminderDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = BackgroundColor,
@@ -60,24 +66,54 @@ fun TaskEntryScreen(
             )
         }
     ) { innerPadding ->
-        TaskEntryBody(
-            taskUiState = viewModel.taskUiState,
-            onTaskValueChange = viewModel::updateUiState,
-            onSaveClick = {
-                coroutineScope.launch {
-                    viewModel.saveTask()
-                    navigateBack()
-                }
-            },
-            modifier = Modifier
-                .padding(
-                    start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
-                    end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
-                    top = innerPadding.calculateTopPadding()
+        Column {
+            TaskEntryBody(
+                taskUiState = viewModel.taskUiState,
+                onTaskValueChange = viewModel::updateUiState,
+                onSaveClick = {
+                    coroutineScope.launch {
+                        viewModel.saveTask()
+                        navigateBack()
+                    }
+                },
+                modifier = Modifier
+                    .padding(
+                        start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
+                        end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
+                        top = innerPadding.calculateTopPadding()
+                    )
+                    .verticalScroll(rememberScrollState())
+                    .fillMaxWidth()
+            )
+            OutlinedButton(
+                onClick = { showReminderDialog = true },
+                shape = MaterialTheme.shapes.small,
+                modifier = Modifier
+                    .padding(
+                        start = dimensionResource(R.dimen.padding_medium),
+                        end = dimensionResource(R.dimen.padding_medium),
+                        top = dimensionResource(R.dimen.padding_medium),
+                    )
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(R.string.set_reminder),
+                    color = SecondaryColor
                 )
-                .verticalScroll(rememberScrollState())
-                .fillMaxWidth()
-        )
+            }
+        }
+        if (showReminderDialog) {
+            ReminderDialogContent(
+                onDialogDismiss = { showReminderDialog = false },
+                taskTitle = viewModel.taskUiState.taskDetails.title,
+                onScheduleReminder = { reminder ->
+                    coroutineScope.launch {
+                        viewModel.selectReminder(reminder)
+                        showReminderDialog = false
+                    }
+                }
+            )
+        }
     }
 }
 
